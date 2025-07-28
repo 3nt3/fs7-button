@@ -75,9 +75,10 @@ async fn main(_spawner: Spawner) {
 
     let start = embassy_time::Instant::now();
     loop {
+        write_button(&mut io, &mut input, ButtonCmd::User4, &mut delay);
         led.set_low();
 
-        write_button(&mut io, &mut input, ButtonCmd::User4, &mut delay);
+        delay.delay_ms(500);
 
         // write_byte(&mut io, packet[0], &mut delay);
     }
@@ -109,7 +110,6 @@ fn write_byte<P: OutputPin>(out: &mut P, byte: u8, delay: &mut Delay) {
 
     let delay_us = theoretical_delay_us - write_duration_us;
 
-    delay.delay_us(104);
     for i in 0..8 {
         if (byte >> i) & 1 == 1 {
             out.set_high().ok();
@@ -126,11 +126,12 @@ fn write_lanc<P: OutputPin, I: InputPin>(
     cmd: &LancCmd,
     delay: &mut Delay,
 ) {
-    let repeat_count = 4;
+    let repeat_count = 30;
 
-    for _ in 0..repeat_count {
+    for i in 0..repeat_count {
         // wait for start bit
         // debug!("Waiting for start bit...");
+        // debug!("Iteration {}", i + 1);
         loop {
             let last_low = embassy_time::Instant::now();
             while !input.is_low().unwrap() {
@@ -143,18 +144,37 @@ fn write_lanc<P: OutputPin, I: InputPin>(
                 break;
             }
         }
+        delay.delay_us(104);
 
         write_byte(out, cmd.mode, delay);
-        delay.delay_us(10);
+        out.set_high();
+        // // delay.delay_us(10);
+        //
+        loop {
+            let last_low = embassy_time::Instant::now();
+            while !input.is_low().unwrap() {
+                cortex_m::asm::nop(); // wait for low signal
+            }
+            let elapsed = last_low.elapsed();
 
-        // debug!("Waiting for new stop bit...");
-        while input.is_low().unwrap() {
-            cortex_m::asm::nop(); // wait for low signal
+            if elapsed.as_micros() > 200 {
+                // debug!("Start bit detected after {} us", elapsed.as_micros());
+                break;
+            }
         }
-        // debug!("Sending command byte...");
-
+        delay.delay_us(104);
         write_byte(out, cmd.cmd, delay);
+        out.set_high();
 
-        out.set_high().ok();
+        // // debug!("Waiting for new stop bit...");
+        // // while input.is_low().unwrap() {
+        // //     cortex_m::asm::nop(); // wait for low signal
+        // // }
+        // // debug!("Sending command byte...");
+        // delay.delay_us(104 * 5);
+        //
+        // write_byte(out, cmd.cmd, delay);
+        //
+        // out.set_high().ok();
     }
 }
