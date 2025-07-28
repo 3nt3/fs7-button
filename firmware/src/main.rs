@@ -3,7 +3,8 @@
 
 mod fmt;
 
-use defmt::{info, warn};
+use cortex_m::delay::Delay;
+use defmt::{debug, info, warn};
 #[cfg(not(feature = "defmt"))]
 use panic_halt as _;
 #[cfg(feature = "defmt")]
@@ -11,16 +12,12 @@ use {defmt_rtt as _, panic_probe as _};
 
 use embassy_executor::Spawner;
 use embassy_stm32::{
-    exti::{Channel, ExtiInput},
-    gpio::{Input, Level, Output, OutputOpenDrain, Pin, Pull, Speed},
+    exti::ExtiInput,
+    gpio::{Level, Output, OutputOpenDrain, Pull, Speed},
     rcc::{self, Hse},
     time::Hertz,
 };
-use embassy_time::Delay;
-use embedded_hal::{
-    delay::DelayNs,
-    digital::{InputPin, OutputPin},
-};
+use embedded_hal::digital::{InputPin, OutputPin};
 
 struct LancCmd {
     pub mode: u8,
@@ -63,7 +60,8 @@ async fn main(_spawner: Spawner) {
     let mut input = ExtiInput::new(p.PB11, p.EXTI11, Pull::Up);
     let mut io = OutputOpenDrain::new(p.PB10, Level::High, Speed::Low);
 
-    let mut delay = Delay;
+    let cp = cortex_m::Peripherals::take().unwrap();
+    let mut delay = cortex_m::delay::Delay::new(cp.SYST, 72_000_00);
 
     // let mut usart_config = Config::default();
     // usart_config.baudrate = 9600;
@@ -77,13 +75,11 @@ async fn main(_spawner: Spawner) {
 
     let start = embassy_time::Instant::now();
     loop {
-        if start.elapsed().as_secs() % 2 == 0 {
-            led.set_low();
-        } else {
-            led.set_high();
+        led.set_low();
 
-            write_button(&mut io, &mut input, ButtonCmd::User4, &mut delay);
-        }
+        write_button(&mut io, &mut input, ButtonCmd::User4, &mut delay);
+
+        // write_byte(&mut io, packet[0], &mut delay);
     }
 }
 
@@ -108,6 +104,11 @@ fn write_button<P: OutputPin, I: InputPin>(
 }
 
 fn write_byte<P: OutputPin>(out: &mut P, byte: u8, delay: &mut Delay) {
+    let theoretical_delay_us = 104;
+    let write_duration_us = 19;
+
+    let delay_us = theoretical_delay_us - write_duration_us;
+
     delay.delay_us(104);
     for i in 0..8 {
         if (byte >> i) & 1 == 1 {
@@ -115,6 +116,7 @@ fn write_byte<P: OutputPin>(out: &mut P, byte: u8, delay: &mut Delay) {
         } else {
             out.set_low().ok();
         }
+        delay.delay_us(delay_us);
     }
 }
 
@@ -128,12 +130,16 @@ fn write_lanc<P: OutputPin, I: InputPin>(
 
     for _ in 0..repeat_count {
         // wait for start bit
+        // debug!("Waiting for start bit...");
         loop {
             let last_low = embassy_time::Instant::now();
-            while !input.is_low().unwrap() {}
+            while !input.is_low().unwrap() {
+                cortex_m::asm::nop(); // wait for low signal
+            }
             let elapsed = last_low.elapsed();
 
             if elapsed.as_micros() > 5000 {
+                // debug!("Start bit detected after {} us", elapsed.as_micros());
                 break;
             }
         }
@@ -141,12 +147,14 @@ fn write_lanc<P: OutputPin, I: InputPin>(
         write_byte(out, cmd.mode, delay);
         delay.delay_us(10);
 
+        // debug!("Waiting for new stop bit...");
         while input.is_low().unwrap() {
-            // wait for end of byte
+            cortex_m::asm::nop(); // wait for low signal
         }
+        // debug!("Sending command byte...");
 
         write_byte(out, cmd.cmd, delay);
 
-        out.set_low().ok();
+        out.set_high().ok();
     }
 }

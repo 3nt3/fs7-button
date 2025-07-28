@@ -13,7 +13,7 @@ defmt-rtt = { version = "1.0.0", optional = true }
 embassy-executor = { version = "0.7.0", features = ["arch-cortex-m", "executor-thread"] }
 embassy-futures = "0.1.1"
 embassy-sync = "0.7.0"
-embassy-time = { version = "0.4.0", features = ["tick-hz-32_768"] }
+embassy-time = { version = "0.4.0", features = ["tick-hz-1_000_000"] }
 panic-halt = "1.0.0"
 panic-probe = { version = "1.0.0", features = ["print-defmt"], optional = true }
 embassy-stm32 = { version = "0.2.0", features = [ "defmt", "stm32f103c8", "unstable-pac", "memory-x", "time-driver-any", "exti" ]  }
