@@ -17,6 +17,9 @@ embassy-time = { version = "0.4.0", features = ["tick-hz-32_768"] }
 panic-halt = "1.0.0"
 panic-probe = { version = "1.0.0", features = ["print-defmt"], optional = true }
 embassy-stm32 = { version = "0.2.0", features = [ "defmt", "stm32f103c8", "unstable-pac", "memory-x", "time-driver-any", "exti" ]  }
+embassy-embedded-hal = { version = "0.3.1", features = ["time"] }
+embedded-hal = "1.0.0"
+critical-section = "1.2.0"
 
 [[bin]]
 name = "firmware"

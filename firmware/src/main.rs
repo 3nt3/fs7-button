@@ -16,6 +16,33 @@ use embassy_stm32::{
     rcc::{self, Hse},
     time::Hertz,
 };
+use embassy_time::Delay;
+use embedded_hal::{
+    delay::DelayNs,
+    digital::{InputPin, OutputPin},
+};
+
+struct LancCmd {
+    pub mode: u8,
+    pub cmd: u8,
+}
+
+enum ButtonCmd {
+    User4,
+    Invalid,
+}
+
+// magic mode for sending buttons. idk what it means
+static THE_MODE: u8 = 0xd7;
+
+impl ButtonCmd {
+    fn value(&self) -> Result<u8, &str> {
+        match self {
+            ButtonCmd::User4 => Ok(0x48),
+            ButtonCmd::Invalid => Err("invalid button"),
+        }
+    }
+}
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
@@ -24,11 +51,19 @@ async fn main(_spawner: Spawner) {
         freq: Hertz::mhz(8),
         mode: rcc::HseMode::Oscillator,
     });
+    config.rcc.pll = Some(rcc::Pll {
+        src: rcc::PllSource::HSE,
+        prediv: rcc::PllPreDiv::DIV1,
+        mul: rcc::PllMul::MUL9, // 8 MHz * 9 = 72 MHz
+    });
 
     let p = embassy_stm32::init(config);
+
     let mut led = Output::new(p.PC13, Level::High, Speed::Low);
     let mut input = ExtiInput::new(p.PB11, p.EXTI11, Pull::Up);
     let mut io = OutputOpenDrain::new(p.PB10, Level::High, Speed::Low);
+
+    let mut delay = Delay;
 
     // let mut usart_config = Config::default();
     // usart_config.baudrate = 9600;
@@ -37,21 +72,81 @@ async fn main(_spawner: Spawner) {
     // // let mut usart = UartRx::new_blocking(p.USART3, p.PB11, usart_config).unwrap();
     // let mut usart = UartTx::new_blocking(p.USART3, p.PB10, usart_config).unwrap();
 
-    let packet = [0xd7, 0x48, 0xff, 0xff, 0xfe, 0x4f, 0xff, 0xff];
+    // let packet = [0xd7, 0x48];
+    let packet = [0xd7, 0x48];
 
+    let start = embassy_time::Instant::now();
     loop {
-        let mut last_low = embassy_time::Instant::now();
-        input.wait_for_low().await;
-        let elapsed = last_low.elapsed();
+        if start.elapsed().as_secs() % 2 == 0 {
+            led.set_low();
+        } else {
+            led.set_high();
 
-        // detect if start bit
-        if elapsed > embassy_time::Duration::from_millis(5) {
-            info!("Start bit detected, sending packet");
-
-            // pull low for 100ms
-            io.set_low();
-            embassy_time::Timer::after(embassy_time::Duration::from_micros(2000)).await;
-            io.set_high();
+            write_button(&mut io, &mut input, ButtonCmd::User4, &mut delay);
         }
+    }
+}
+
+fn write_button<P: OutputPin, I: InputPin>(
+    out: &mut P,
+    input: &mut I,
+    cmd: ButtonCmd,
+    delay: &mut Delay,
+) {
+    let mode = THE_MODE;
+    let cmd_value = cmd.value().unwrap();
+
+    write_lanc(
+        out,
+        input,
+        &LancCmd {
+            mode,
+            cmd: cmd_value,
+        },
+        delay,
+    );
+}
+
+fn write_byte<P: OutputPin>(out: &mut P, byte: u8, delay: &mut Delay) {
+    delay.delay_us(104);
+    for i in 0..8 {
+        if (byte >> i) & 1 == 1 {
+            out.set_high().ok();
+        } else {
+            out.set_low().ok();
+        }
+    }
+}
+
+fn write_lanc<P: OutputPin, I: InputPin>(
+    out: &mut P,
+    input: &mut I,
+    cmd: &LancCmd,
+    delay: &mut Delay,
+) {
+    let repeat_count = 4;
+
+    for _ in 0..repeat_count {
+        // wait for start bit
+        loop {
+            let last_low = embassy_time::Instant::now();
+            while !input.is_low().unwrap() {}
+            let elapsed = last_low.elapsed();
+
+            if elapsed.as_micros() > 5000 {
+                break;
+            }
+        }
+
+        write_byte(out, cmd.mode, delay);
+        delay.delay_us(10);
+
+        while input.is_low().unwrap() {
+            // wait for end of byte
+        }
+
+        write_byte(out, cmd.cmd, delay);
+
+        out.set_low().ok();
     }
 }
