@@ -1,0 +1,14 @@
+﻿Designator,Footprint,Quantity,Value,LCSC Part #
+"3V3, GND, TP2, TP3, TP4, TP5",TestPoint_Pad_D1.5mm,6,TestPoint,
+"C1, C4, C7, C8, C9",0603,5,100n,
+"C2, C3",0603,2,14p,
+"C5, C6",0603,2,1u,
+"CN1, CN2",AUDIO-TH_PJ-210-3P,2,PJ-210 3P,C668602
+"D1, D2, D3",0603,3,LED,
+J1,PinHeader_1x03_P2.54mm_Vertical,1,Conn_01x03,
+"R1, R2, R3",0603,3,680R,
+SW1,SW-TH_SK12D07VG5-1,1,SW_SPST,
+"SW2, SW3, SW4",SW-SMD_4P-L5.1-W5.1-P3.70-LS6.5-TL_H1.5,3,SW_Push,
+U1,TSSOP-20_4.4x6.5mm_P0.65mm,1,CH32V003FxPx,
+U2,SOT-23-5,1,LP5907MFX-3.3,
+Y1,Crystal_SMD_3225-4Pin_3.2x2.5mm,1,Crystal_GND24,
