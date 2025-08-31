@@ -1,0 +1,34 @@
+[package]
+name = "firmware-ch32v003"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ch32-hal = { git = "https://github.com/ch32-rs/ch32-hal.git", features = [
+    "ch32v003j4m6",
+    "embassy",
+    "time-driver-tim2",
+    "rt",
+    "memory-x",
+] }
+embassy-executor = { version = "0.7.0", features = [
+    "arch-spin",
+    "executor-thread",
+    "task-arena-size-256", # or better use nightly, but fails on recent Rust versions
+] }
+embassy-time = { version = "0.4.0" }
+qingke-rt = { version = "0.5.0", features = ["highcode"] }
+# qingke = "0.5.0"
+embedded-hal = "1.0.0"
+panic-halt = "1.0.0"
+defmt = "1.0.1"
+
+[profile.release]
+# symbols are not flashed to the microcontroller, so don't strip them.
+strip = false
+# LLVM can perform better optimizations using a single thread
+codegen-units = 1
+panic = "abort"
+lto = true
+# Optimize for size.
+opt-level = "s"
