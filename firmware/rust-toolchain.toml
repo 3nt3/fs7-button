@@ -1,6 +1,3 @@
-# This file was automatically generated.
-
 [toolchain]
-channel = "1.84"
-components = ["rust-src", "rustfmt"]
-targets = ["thumbv7m-none-eabi"]
+channel = "nightly"
+components = ["rust-src", "llvm-tools-preview", "rustfmt", "clippy"]
