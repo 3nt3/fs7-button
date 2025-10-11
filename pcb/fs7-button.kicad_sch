@@ -2794,10 +2794,6 @@
 		(at 154.94 97.79)
 		(uuid "35dbb2c1-f895-43d8-a2cc-8c8e4b041525")
 	)
-	(no_connect
-		(at 154.94 100.33)
-		(uuid "6620b93d-b338-4d31-b651-8475bf981341")
-	)
 	(wire
 		(pts
 			(xy 67.31 49.53) (xy 76.2 49.53)
@@ -3147,6 +3143,16 @@
 			(type default)
 		)
 		(uuid "562fcffc-8c71-4aef-888b-6b452f0061e3")
+	)
+	(wire
+		(pts
+			(xy 161.29 100.33) (xy 161.29 109.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5a1f2d2a-e11b-4424-8586-b8b889db1675")
 	)
 	(wire
 		(pts
@@ -3747,6 +3753,16 @@
 			(type default)
 		)
 		(uuid "f3701514-60e8-4d02-87cd-b8c23e59332f")
+	)
+	(wire
+		(pts
+			(xy 154.94 100.33) (xy 161.29 100.33)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f61f934e-dce2-4e7d-9efc-175176e4ff95")
 	)
 	(wire
 		(pts
@@ -4874,6 +4890,76 @@
 	)
 	(symbol
 		(lib_id "Device:C")
+		(at 161.29 113.03 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "20c99253-6ccf-450b-8196-c420db29510a")
+		(property "Reference" "C10"
+			(at 165.1 111.7599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n"
+			(at 165.1 114.2999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 162.2552 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 161.29 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 161.29 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "8ae45cef-246e-4633-aa32-662eee0063a9")
+		)
+		(pin "1"
+			(uuid "60b4bd7c-4224-4ed7-9fd0-1062534361b9")
+		)
+		(instances
+			(project ""
+				(path "/f5fe6669-9eae-4313-a9e4-62cdbf04e572"
+					(reference "C10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
 		(at 213.36 127 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5904,6 +5990,72 @@
 			(project "fs7-button"
 				(path "/f5fe6669-9eae-4313-a9e4-62cdbf04e572"
 					(reference "SW4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 161.29 116.84 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "655a73bd-a088-474f-a188-3cabfc7f98cc")
+		(property "Reference" "#PWR023"
+			(at 161.29 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 161.29 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 161.29 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 161.29 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 161.29 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "86dd8804-22b8-4ff2-a907-9e2d95136dac")
+		)
+		(instances
+			(project ""
+				(path "/f5fe6669-9eae-4313-a9e4-62cdbf04e572"
+					(reference "#PWR023")
 					(unit 1)
 				)
 			)
