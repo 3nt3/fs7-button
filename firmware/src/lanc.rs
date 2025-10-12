@@ -20,36 +20,45 @@ pub enum ButtonCmd {
 pub static THE_MODE: u8 = 0xd7;
 
 impl ButtonCmd {
-    fn value(&self) -> Result<u8, &str> {
+    pub fn value(&self) -> Result<u8, &str> {
         match self {
             ButtonCmd::User4 => Ok(0x48),
             ButtonCmd::Invalid => Err("invalid button"),
         }
     }
 }
+//
+// pub fn write_button<P: InputPin + OutputPin>(io: &mut P, cmd: ButtonCmd, delay: &mut Delay) {
+//     let mode = THE_MODE;
+//     let cmd_value = cmd.value().unwrap();
+//
+//     write_lanc(
+//         io,
+//         &LancCmd {
+//             mode,
+//             cmd: cmd_value,
+//         },
+//         delay,
+//     );
+// }
 
-pub fn write_byte<P: OutputPin>(out: &mut P, byte: u8, delay: &mut Delay) {
+fn write_byte<P: InputPin + OutputPin>(io: &mut P, byte: u8, delay: &mut Delay) {
     let theoretical_delay_us = 104;
-    let write_duration_us = 19;
+    let write_duration_us = 3;
 
     let delay_us = theoretical_delay_us - write_duration_us;
 
     for i in 0..8 {
         if (byte >> i) & 1 == 1 {
-            out.set_high().ok();
+            io.set_high().ok();
         } else {
-            out.set_low().ok();
+            io.set_low().ok();
         }
         delay.delay_us(delay_us);
     }
 }
 
-pub fn write_lanc<P: OutputPin, I: InputPin>(
-    out: &mut P,
-    input: &mut I,
-    cmd: &LancCmd,
-    delay: &mut Delay,
-) {
+pub fn write_lanc<P: InputPin + OutputPin>(io: &mut P, cmd: &LancCmd, delay: &mut Delay) {
     let repeat_count = 30;
 
     for i in 0..repeat_count {
@@ -58,7 +67,7 @@ pub fn write_lanc<P: OutputPin, I: InputPin>(
         // debug!("Iteration {}", i + 1);
         loop {
             let last_low = embassy_time::Instant::now();
-            while !input.is_low().unwrap() {
+            while !io.is_low().unwrap() {
                 nop();
             }
             let elapsed = last_low.elapsed();
@@ -70,13 +79,13 @@ pub fn write_lanc<P: OutputPin, I: InputPin>(
         }
         delay.delay_us(104);
 
-        write_byte(out, cmd.mode, delay);
-        out.set_high();
+        write_byte(io, cmd.mode, delay);
+        io.set_high();
         // // delay.delay_us(10);
         //
         loop {
             let last_low = embassy_time::Instant::now();
-            while !input.is_low().unwrap() {
+            while !io.is_low().unwrap() {
                 nop();
             }
             let elapsed = last_low.elapsed();
@@ -87,18 +96,7 @@ pub fn write_lanc<P: OutputPin, I: InputPin>(
             }
         }
         delay.delay_us(104);
-        write_byte(out, cmd.cmd, delay);
-        out.set_high();
-
-        // // debug!("Waiting for new stop bit...");
-        // // while input.is_low().unwrap() {
-        // //     cortex_m::asm::nop(); // wait for low signal
-        // // }
-        // // debug!("Sending command byte...");
-        // delay.delay_us(104 * 5);
-        //
-        // write_byte(out, cmd.cmd, delay);
-        //
-        // out.set_high().ok();
+        write_byte(io, cmd.cmd, delay);
+        io.set_high();
     }
 }

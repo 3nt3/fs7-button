@@ -4,8 +4,14 @@
 #![feature(impl_trait_in_assoc_type)]
 #![feature(riscv_ext_intrinsics)]
 
+use ch32_hal::gpio::OutputOpenDrain;
+use ch32_hal::println;
+use defmt::info;
+use embedded_hal::digital::InputPin;
 use hal::delay::Delay;
 use hal::gpio::{Input, Level, Output, Pull};
+
+use crate::lanc::ButtonCmd;
 
 use {ch32_hal as hal, panic_halt as _};
 
@@ -28,27 +34,22 @@ fn main() -> ! {
     let btn3 = Input::new(p.PD4, Pull::Up);
     let switch = Input::new(p.PD5, Pull::Up);
 
-    let mut i = 10;
+    let mut camera_io = OutputOpenDrain::new(p.PC2, Level::High, ch32_hal::gpio::Speed::High);
 
     loop {
-        if i == 0 {
-            led1.toggle();
-            led2.toggle();
-            i = 10;
-        } else {
-            i -= 1;
-        }
+        // lanc::write_button(&mut camera_io, ButtonCmd::User4, &mut delay);
 
-        delay.delay_ms(10);
+        let byte = ButtonCmd::User4.value().unwrap();
 
-        // delay.delay_ms(100);
-        let val = hal::pac::SYSTICK.cnt().read();
-        hal::println!(
-            "{} {} {} {}",
-            btn1.is_low(),
-            btn2.is_low(),
-            btn3.is_low(),
-            switch.is_low()
+        lanc::write_lanc(
+            &mut camera_io,
+            &lanc::LancCmd {
+                mode: lanc::THE_MODE,
+                cmd: byte,
+            },
+            &mut delay,
         );
+
+        delay.delay_ms(500);
     }
 }
