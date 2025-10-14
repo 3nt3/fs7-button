@@ -15,7 +15,9 @@ pub struct LancCmd {
 /// LANC button commands
 pub enum ButtonCmd {
     User4,
+    /// FIXME: This is not the correct code
     User5,
+    /// FIXME: This is not the correct code
     User6,
 }
 
@@ -26,8 +28,8 @@ impl ButtonCmd {
     pub fn value(&self) -> Result<u8, &str> {
         match self {
             ButtonCmd::User4 => Ok(0x48),
-            ButtonCmd::User5 => Ok(0x49),
-            ButtonCmd::User6 => Ok(0x50),
+            ButtonCmd::User5 => Ok(0x62),
+            ButtonCmd::User6 => Ok(0x64),
         }
     }
 }
@@ -69,7 +71,7 @@ fn write_byte<P: InputPin + OutputPin>(io: &mut P, byte: u8, delay: &mut Delay) 
 }
 
 pub fn write_lanc<P: InputPin + OutputPin>(io: &mut P, cmd: &LancCmd, delay: &mut Delay) {
-    let repeat_count = 30;
+    let repeat_count = 5;
 
     for _ in 0..repeat_count {
         // wait for start bit
