@@ -15,7 +15,22 @@ use crate::lanc::ButtonCmd;
 
 use {ch32_hal as hal, panic_halt as _};
 
-mod lanc;
+/// LANC module
+///
+/// [LANC](https://en.wikipedia.org/wiki/LANC) is a bidirectional serial open collector communication port, where two devices can communicate with each other. The camcorder or still video camera is able to receive commands and sends back its status.
+/// A write up of various commands and the protocol in general has been attempted by
+/// [boehmel.de](https://www.boehmel.de/lanc.htm), even though none of the commands used by my
+/// [PXW-FS7](https://pro.sony/ue_US/products/handheld-camcorders/pxw-fs7) are listed there lol.
+///
+/// # Example
+/// ```rust
+/// use ch32_hal::{self as hal, gpio::{OutputOpenDrain, Level}};
+///
+/// let mut camera_io = OutputOpenDrain::new(p.PC2, Level::High, ch32_hal::gpio::Speed::High);
+///
+/// lanc::write_button(&mut camera_io, lanc::ButtonCmd::User4, &mut delay);
+/// ```
+pub mod lanc;
 
 #[qingke_rt::entry]
 fn main() -> ! {

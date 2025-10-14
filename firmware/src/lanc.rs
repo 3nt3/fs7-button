@@ -6,18 +6,20 @@ use hal::gpio::{Input, Level, Output, Pull};
 
 use {ch32_hal as hal, panic_halt as _};
 
+/// LANC command structure
 pub struct LancCmd {
     pub mode: u8,
     pub cmd: u8,
 }
 
+/// LANC button commands
 pub enum ButtonCmd {
     User4,
     User5,
     User6,
 }
 
-// magic mode for sending buttons. idk what it means
+/// Magic mode for sending buttons. Unknown meaning
 pub static THE_MODE: u8 = 0xd7;
 
 impl ButtonCmd {
@@ -30,6 +32,12 @@ impl ButtonCmd {
     }
 }
 
+/// Write a button command to the LANC bus
+///
+/// # Arguments
+/// * `io` - The GPIO pin connected to the LANC button (must be open-drain)
+/// * `cmd` - The button command to send
+/// * `delay` - A delay provider
 pub fn write_button<P: InputPin + OutputPin>(io: &mut P, cmd: ButtonCmd, delay: &mut Delay) {
     let mode = THE_MODE;
     let cmd_value = cmd.value().unwrap();
