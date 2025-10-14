@@ -13,7 +13,8 @@ pub struct LancCmd {
 
 pub enum ButtonCmd {
     User4,
-    Invalid,
+    User5,
+    User6,
 }
 
 // magic mode for sending buttons. idk what it means
@@ -23,24 +24,25 @@ impl ButtonCmd {
     pub fn value(&self) -> Result<u8, &str> {
         match self {
             ButtonCmd::User4 => Ok(0x48),
-            ButtonCmd::Invalid => Err("invalid button"),
+            ButtonCmd::User5 => Ok(0x49),
+            ButtonCmd::User6 => Ok(0x50),
         }
     }
 }
-//
-// pub fn write_button<P: InputPin + OutputPin>(io: &mut P, cmd: ButtonCmd, delay: &mut Delay) {
-//     let mode = THE_MODE;
-//     let cmd_value = cmd.value().unwrap();
-//
-//     write_lanc(
-//         io,
-//         &LancCmd {
-//             mode,
-//             cmd: cmd_value,
-//         },
-//         delay,
-//     );
-// }
+
+pub fn write_button<P: InputPin + OutputPin>(io: &mut P, cmd: ButtonCmd, delay: &mut Delay) {
+    let mode = THE_MODE;
+    let cmd_value = cmd.value().unwrap();
+
+    write_lanc(
+        io,
+        &LancCmd {
+            mode,
+            cmd: cmd_value,
+        },
+        delay,
+    );
+}
 
 fn write_byte<P: InputPin + OutputPin>(io: &mut P, byte: u8, delay: &mut Delay) {
     let theoretical_delay_us = 104;
@@ -61,10 +63,8 @@ fn write_byte<P: InputPin + OutputPin>(io: &mut P, byte: u8, delay: &mut Delay) 
 pub fn write_lanc<P: InputPin + OutputPin>(io: &mut P, cmd: &LancCmd, delay: &mut Delay) {
     let repeat_count = 30;
 
-    for i in 0..repeat_count {
+    for _ in 0..repeat_count {
         // wait for start bit
-        // debug!("Waiting for start bit...");
-        // debug!("Iteration {}", i + 1);
         loop {
             let last_low = embassy_time::Instant::now();
             while !io.is_low().unwrap() {
@@ -80,9 +80,7 @@ pub fn write_lanc<P: InputPin + OutputPin>(io: &mut P, cmd: &LancCmd, delay: &mu
         delay.delay_us(104);
 
         write_byte(io, cmd.mode, delay);
-        io.set_high();
-        // // delay.delay_us(10);
-        //
+        let _ = io.set_high();
         loop {
             let last_low = embassy_time::Instant::now();
             while !io.is_low().unwrap() {
@@ -91,12 +89,11 @@ pub fn write_lanc<P: InputPin + OutputPin>(io: &mut P, cmd: &LancCmd, delay: &mu
             let elapsed = last_low.elapsed();
 
             if elapsed.as_micros() > 200 {
-                // debug!("Start bit detected after {} us", elapsed.as_micros());
                 break;
             }
         }
         delay.delay_us(104);
         write_byte(io, cmd.cmd, delay);
-        io.set_high();
+        let _ = io.set_high();
     }
 }

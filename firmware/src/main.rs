@@ -37,19 +37,23 @@ fn main() -> ! {
     let mut camera_io = OutputOpenDrain::new(p.PC2, Level::High, ch32_hal::gpio::Speed::High);
 
     loop {
-        // lanc::write_button(&mut camera_io, ButtonCmd::User4, &mut delay);
+        if btn1.is_low() || btn2.is_low() || btn3.is_low() {
+            led1.set_high();
+        } else {
+            led1.set_low();
+        }
 
-        let byte = ButtonCmd::User4.value().unwrap();
-
-        lanc::write_lanc(
-            &mut camera_io,
-            &lanc::LancCmd {
-                mode: lanc::THE_MODE,
-                cmd: byte,
-            },
-            &mut delay,
-        );
-
-        delay.delay_ms(500);
+        if btn1.is_low() {
+            info!("btn1 pressed");
+            lanc::write_button(&mut camera_io, ButtonCmd::User4, &mut delay);
+        }
+        if btn2.is_low() {
+            info!("btn1 pressed");
+            lanc::write_button(&mut camera_io, ButtonCmd::User5, &mut delay);
+        }
+        if btn3.is_low() {
+            info!("btn1 pressed");
+            lanc::write_button(&mut camera_io, ButtonCmd::User6, &mut delay);
+        }
     }
 }
